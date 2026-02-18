@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: receipt-processor-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=receipt_db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  localstack:
+    image: localstack/localstack
+    container_name: receipt-processor-aws
+    ports:
+      - "4566:4566"       
+    environment:
+      - SERVICES=s3,sqs,sns  
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "./infra/localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: receipt-processor-pgadmin
+    ports:
+      - "8080:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
